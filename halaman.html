@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photobox Online</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .title-game {
+        font-family: 'Press Start 2P', cursive;
+      }
+      /* Gaya tambahan untuk photobox */
+      #video-container {
+        position: relative;
+        width: 100%;
+        max-width: 600px; /* Sesuaikan dengan desain Figma */
+        height: auto;
+        border-radius: 16px; /* Rounded corners sesuai Figma */
+        overflow: hidden;
+        border: 4px solid #805AD5; /* Warna border sesuai tema Figma */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Efek shadow sesuai Figma */
+      }
+      #video {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+      #canvas {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none; /* Agar tidak mengganggu interaksi dengan video */
+      }
+      #overlay-image {
+        max-width: 80%;  /* Lebih kecil dari video */
+        max-height: 80%;
+        object-fit: contain; /* Memastikan gambar muat di dalam area */
+        display: none; /* Sembunyikan sampai stiker dipilih */
+      }
+
+      .filter-button, .sticker-button {
+        background-color: #EDE7F6; /* Warna background sesuai tema Figma */
+        color: #805AD5; /* Warna teks sesuai tema Figma */
+        padding: 12px 24px;
+        border-radius: 24px; /* Rounded corners sesuai Figma */
+        font-size: 16px;
+        font-weight: 500; /* Medium font weight */
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        border: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Efek shadow sesuai Figma */
+      }
+      .filter-button:hover, .sticker-button:hover {
+        background-color: #D1C4E9; /* Warna hover sesuai tema Figma */
+        transform: scale(1.05); /* Efek scale saat hover */
+      }
+      .filter-button.active, .sticker-button.active {
+        background-color: #805AD5; /* Warna aktif sesuai tema Figma */
+        color: white;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2); /* Efek shadow lebih kuat saat aktif */
+      }
+
+      #take-photo {
+        background-image: linear-gradient(to right, #805AD5, #E91E63); /* Gradient sesuai Figma */
+        color: white;
+        padding: 16px 32px;
+        border-radius: 32px; /* Rounded corners lebih besar */
+        font-size: 20px;
+        font-weight: 600; /* Semi-bold font weight */
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Efek shadow sesuai Figma */
+      }
+      #take-photo:hover {
+        background-image: linear-gradient(to right, #673AB7, #C2185B); /* Warna hover gradient */
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); /* Efek shadow lebih besar saat hover */
+      }
+      #take-photo:active {
+        transform: scale(1);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Efek shadow lebih kecil saat active */
+      }
+
+      #download-photo {
+        background-color: #1E88E5;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 24px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+        border: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        display: none; /* Sembunyikan sampai foto diambil */
+      }
+      #download-photo:hover {
+        background-color: #1565C0;
+        transform: scale(1.05);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      #gallery-container {
+        display: grid;
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+        gap: 16px; /* Jarak antar foto */
+        padding: 16px;
+      }
+      @media (min-width: 640px) {
+        #gallery-container {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (min-width: 768px) {
+        #gallery-container {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+      @media (min-width: 1024px) {
+        #gallery-container {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+      }
+      .gallery-item {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .gallery-item:hover {
+        transform: scale(1.03);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+      .gallery-item img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      #contact-form {
+        background-color: #F3E5F5; /* Warna form sesuai tema Figma */
+        border-radius: 16px; /* Rounded corners sesuai Figma */
+        padding: 24px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Efek shadow sesuai Figma */
+        margin: 0 auto; /* Center form */
+        max-width: 600px; /* sesuai lebar figma */
+      }
+      #contact-form input[type="text"],
+      #contact-form input[type="email"],
+      #contact-form textarea {
+        background-color: white;
+        color: #805AD5; /* Warna teks input sesuai tema Figma */
+        padding: 12px;
+        border-radius: 24px; /* Rounded corners sesuai Figma */
+        border: 1px solid #D1C4E9; /* Warna border sesuai tema Figma */
+        outline: none;
+        margin-bottom: 16px;
+        width: 100%; /* Lebar input 100% */
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        font-size: 16px;
+      }
+      #contact-form input[type="text"]:focus,
+      #contact-form input[type="email"]:focus,
+      #contact-form textarea:focus {
+        border-color: #805AD5; /* Warna border fokus sesuai tema Figma */
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* Efek shadow fokus */
+      }
+      #contact-form textarea {
+        resize: vertical;
+        height: 120px; /* Tinggi textarea default */
+      }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <header class="bg-purple-600 text-white py-4 flex justify-between items-center shadow-md sticky top-0 z-10 rounded-md">
+        <h1 class="title-game text-2xl ml-4">PixBooth</h1>
+        <nav class="mr-4">
+            <ul class="flex space-x-6">
+                <li><a href="#home" class="hover:text-purple-300 no-underline font-semibold">Beranda</a></li>
+                <li><a href="#photobox" class="hover:text-purple-300 no-underline font-semibold">Photobox</a></li>
+                <li><a href="#galeri" class="hover:text-purple-300 no-underline font-semibold">Galeri</a></li>
+                <li><a href="#tentang" class="hover:text-purple-300 no-underline font-semibold">Tentang</a></li>
+                <li><a href="#kontak" class="hover:text-purple-300 no-underline font-semibold">Kontak</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container mx-auto mt-8 p-4">
+        <section id="home" class="mb-16 text-center rounded-md">
+            <h2 class="title-game text-4xl text-purple-700 mb-4">Selamat Datang di PixBooth</h2>
+            <p class="text-lg text-gray-700 mb-6">Photobox online pertama di Indonesia yang memungkinkan kamu berfoto langsung dari browser, tanpa alat tambahan!</p>
+            <a href="#photobox" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-full hover:from-purple-600 hover:to-pink-600 transition duration-300 ease-in-out font-semibold text-xl">Mulai Sekarang</a>
+        </section>
+
+        <section id="photobox" class="mb-16 text-center rounded-md">
+            <h2 class="title-game text-3xl text-purple-700 mb-4">Photobox Langsung dari Browser</h2>
+            <div class="flex justify-center items-center mb-4">
+                <div id="video-container">
+                    <video id="video" autoplay></video>
+                    <canvas id="canvas"></canvas>
+                    <div id="overlay">
+                        <img id="overlay-image" src="" alt="Stiker">
+                    </div>
+                </div>
+            </div>
+            <div id="controls" class="flex justify-center items-center space-x-4 mb-4">
+                <select id="filter-select" class="filter-button">
+                    <option value="none">Tanpa Filter</option>
+                    <option value="grayscale">Grayscale</option>
+                    <option value="sepia">Sepia</option>
+                    <option value="invert">Invert</option>
+                    <option value="blur">Blur</option>
+                </select>
+                <select id="sticker-select" class="sticker-button">
+                    <option value="none">Tanpa Stiker</option>
+                    <option value="sunglasses">Kacamata</option>
+                    <option value="hat">Topi</option>
+                    <option value="heart">Hati</option>
+                </select>
+                <button id="take-photo" class="take-photo">Ambil Foto</button>
+                <button id="download-photo" class="download-photo">Unduh Foto</button>
+            </div>
+            <p class="text-gray-600 mt-4">Klik tombol "Ambil Foto" untuk memulai. Pilih filter dan stiker untuk memeriahkan fotomu!</p>
+        </section>
+
+        <section id="galeri" class="mb-16 text-center rounded-md">
+            <h2 class="title-game text-3xl text-purple-700 mb-4">Galeri Foto</h2>
+            <div id="gallery-container">
+            </div>
+        </section>
+
+        <section id="tentang" class="mb-16 rounded-md">
+            <h2 class="title-game text-3xl text-purple-700 mb-4 text-center">Tentang Kami</h2>
+            <p class="text-lg text-gray-700 text-center">PixBooth adalah platform photobox online yang memungkinkan kamu membuat foto-foto seru langsung dari browser. Tanpa perlu menginstall aplikasi tambahan, kamu bisa berkreasi dengan berbagai filter dan stiker menarik. PixBooth hadir untuk memeriahkan acara-acara spesialmu dan memberikan kenangan tak terlupakan.</p>
+        </section>
+
+        <section id="kontak" class="mb-16 rounded-md">
+            <h2 class="title-game text-3xl text-purple-700 mb-4 text-center">Hubungi Kami</h2>
+            <p class="text-lg text-gray-700 text-center mb-4">Email: support@pixbooth.com | Telepon: +62 812 3456 7890</p>
+            <form id="contact-form">
+                <input type="text" id="name" placeholder="Nama Kamu" required>
+                <input type="email" id="email" placeholder="Email Kamu" required>
+                <textarea id="message" placeholder="Pesan Kamu" rows="4" required></textarea>
+                <button type="submit">Kirim Pesan</button>
+            </form>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-4 text-center rounded-md">
+        <p>© 2024 PixBooth. All rights reserved.</p>
+    </footer>
+
+    <script>
+    const videoElement = document.getElementById('video');
+    const canvasElement = document.getElementById('canvas');
+    const context = canvasElement.getContext('2d');
+    const takePhotoButton = document.getElementById('take-photo');
+    const downloadPhotoButton = document.getElementById('download-photo');
+    const filterSelect = document.getElementById('filter-select');
+    const stickerSelect = document.getElementById('sticker-select');
+    const galleryContainer = document.getElementById('gallery-container');
+    const overlayImageElement = document.getElementById('overlay-image');
+    const nameInput = document.getElementById('name');
+    const emailInput = document.getElementById('email');
+    const messageInput = document.getElementById('message');
+    const contactForm = document.getElementById('contact-form');
+
+
+    let stream;
+    let photos = [];
+    let currentFilter = 'none';
+    let currentSticker = 'none';
+    let isDragging = false;
+    let stickerX = 0;
+    let stickerY = 0;
+    let stickerInstance = null; // Menyimpan instance stiker yang di-drag
+
+    const stickerImages = {
+        'sunglasses': '/assets/sunglasses.png',
+        'hat': '/assets/hat.png',
+        'heart': '/assets/heart.png',
+    };
+
+    async function startCamera() {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            videoElement.srcObject = stream;
+            videoElement.onloadedmetadata = () => {
+                videoElement.play();
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+            };
+        } catch (err) {
+            console.error("Error accessing the camera:", err);
+            alert("Kamera tidak tersedia. Periksa izin kamera Anda.");
+        }
+    }
+
+    function applyFilter() {
+        context.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+        const imageData = context.getImageData(0, 0, canvasElement.width, canvasElement.height);
+        const data = imageData.data;
+
+        if (currentFilter === 'grayscale') {
+            for (let i = 0; i < data.length; i += 4) {
+                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                data[i] = avg;
+                data[i + 1] = avg;
+                data[i + 2] = avg;
+            }
+        } else if (currentFilter === 'sepia') {
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
+                data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
+                data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+            }
+        } else if (currentFilter === 'invert') {
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = 255 - data[i];
+                data[i + 1] = 255 - data[i + 1];
+                data[i + 2] = 255 - data[i + 2];
+            }
+        } else if (currentFilter === 'blur') {
+            context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+            context.filter = 'blur(5px)';
+        }
+
+        context.putImageData(imageData, 0, 0);
+    }
+
+function applySticker() {
+    overlayImageElement.style.display = 'none';
+    if (currentSticker !== 'none') {
+        overlayImageElement.src = stickerImages[currentSticker];
+        overlayImageElement.style.display = 'block';
+
+        // Jika ini stiker baru, reset posisi dan buat instance baru
+        if (!stickerInstance) {
+            stickerX = (canvasElement.width / 2) - 50; // Posisi tengah horizontal
+            stickerY = (canvasElement.height / 2) - 50; // Posisi tengah vertikal
+        }
+
+        overlayImageElement.style.left = `${stickerX}px`;
+        overlayImageElement.style.top = `${stickerY}px`;
+    }
+}
+
+
+
+    function takePhoto() {
+        applyFilter();
+        const dataURL = canvasElement.toDataURL('image/png');
+        photos.push(dataURL);
+        displayPhoto(dataURL);
+        downloadPhotoButton.style.display = 'inline-block';
+    }
+
+    function displayPhoto(dataURL) {
+        const img = document.createElement('img');
+        img.src = dataURL;
+        img.classList.add('gallery-item');
+        galleryContainer.insertBefore(img, galleryContainer.firstChild);
+    }
+
+    function downloadPhoto() {
+        if (photos.length > 0) {
+            const a = document.createElement('a');
+            a.href = photos[photos.length - 1];
+            a.download = 'foto_pixbooth.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } else {
+            alert("Ambil foto terlebih dahulu sebelum mengunduh.");
+        }
+    }
+
+    filterSelect.addEventListener('change', () => {
+        currentFilter = filterSelect.value;
+        applyFilter();
+    });
+
+  stickerSelect.addEventListener('change', () => {
+    currentSticker = stickerSelect.value;
+    applySticker();
+});
+
+
+
+    takePhotoButton.addEventListener('click', () => {
+        takePhoto();
+    });
+
+    downloadPhotoButton.addEventListener('click', () => {
+        downloadPhoto();
+    });
+
+    // Mulai kamera saat halaman dimuat
+    startCamera();
+
+  // Fungsi untuk mengirim data formulir kontak
+contactForm.addEventListener('submit', (event) => {
+    event.preventDefault(); // Mencegah pengiriman formulir standar
+
+    // Validasi input
+    if (!nameInput.value.trim()) {
+        alert('Nama harus diisi.');
+        return;
+    }
+    if (!emailInput.value.trim()) {
+        alert('Email harus diisi.');
+        return;
+    }
+    if (!messageInput.value.trim()) {
+        alert('Pesan harus diisi.');
+        return;
+    }
+
+    // Buat objek data yang akan dikirim
+    const formData = {
+        name: nameInput.value,
+        email: emailInput.value,
+        message: messageInput.value,
+    };
+
+    // Kirim data ke server (gunakan fetch atau library AJAX lainnya)
+    // Contoh menggunakan fetch:
+    fetch('/kirim-pesan.php', { // Ganti '/kirim-pesan.php' dengan URL yang sesuai
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Pesan kamu sudah terkirim!');
+            nameInput.value = '';
+            emailInput.value = '';
+            messageInput.value = '';
+        } else {
+            alert('Terjadi kesalahan. Silakan coba lagi nanti.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Terjadi kesalahan. Silakan coba lagi nanti.');
+    });
+});
+    </script>
+</body>
+</html>
