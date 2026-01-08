@@ -3,470 +3,255 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photobox Online</title>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>PixBooth - Photobox Online Interaktif</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=Press+Start+2P&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-      body {
-        font-family: 'Inter', sans-serif;
-      }
-      .title-game {
-        font-family: 'Press Start 2P', cursive;
-      }
-      /* Gaya tambahan untuk photobox */
-      #video-container {
-        position: relative;
-        width: 100%;
-        max-width: 600px; /* Sesuaikan dengan desain Figma */
-        height: auto;
-        border-radius: 16px; /* Rounded corners sesuai Figma */
-        overflow: hidden;
-        border: 4px solid #805AD5; /* Warna border sesuai tema Figma */
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Efek shadow sesuai Figma */
-      }
-      #video {
-        width: 100%;
-        height: auto;
-        display: block;
-      }
-      #canvas {
-        display: none;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-      }
-      #overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none; /* Agar tidak mengganggu interaksi dengan video */
-      }
-      #overlay-image {
-        max-width: 80%;  /* Lebih kecil dari video */
-        max-height: 80%;
-        object-fit: contain; /* Memastikan gambar muat di dalam area */
-        display: none; /* Sembunyikan sampai stiker dipilih */
-      }
-
-      .filter-button, .sticker-button {
-        background-color: #EDE7F6; /* Warna background sesuai tema Figma */
-        color: #805AD5; /* Warna teks sesuai tema Figma */
-        padding: 12px 24px;
-        border-radius: 24px; /* Rounded corners sesuai Figma */
-        font-size: 16px;
-        font-weight: 500; /* Medium font weight */
-        cursor: pointer;
-        transition: background-color 0.3s ease, transform 0.2s ease;
-        border: none;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Efek shadow sesuai Figma */
-      }
-      .filter-button:hover, .sticker-button:hover {
-        background-color: #D1C4E9; /* Warna hover sesuai tema Figma */
-        transform: scale(1.05); /* Efek scale saat hover */
-      }
-      .filter-button.active, .sticker-button.active {
-        background-color: #805AD5; /* Warna aktif sesuai tema Figma */
-        color: white;
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2); /* Efek shadow lebih kuat saat aktif */
-      }
-
-      #take-photo {
-        background-image: linear-gradient(to right, #805AD5, #E91E63); /* Gradient sesuai Figma */
-        color: white;
-        padding: 16px 32px;
-        border-radius: 32px; /* Rounded corners lebih besar */
-        font-size: 20px;
-        font-weight: 600; /* Semi-bold font weight */
-        cursor: pointer;
-        transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
-        border: none;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Efek shadow sesuai Figma */
-      }
-      #take-photo:hover {
-        background-image: linear-gradient(to right, #673AB7, #C2185B); /* Warna hover gradient */
-        transform: scale(1.05);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25); /* Efek shadow lebih besar saat hover */
-      }
-      #take-photo:active {
-        transform: scale(1);
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* Efek shadow lebih kecil saat active */
-      }
-
-      #download-photo {
-        background-color: #1E88E5;
-        color: white;
-        padding: 12px 24px;
-        border-radius: 24px;
-        font-size: 16px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background-color 0.3s ease, transform 0.2s ease;
-        border: none;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        display: none; /* Sembunyikan sampai foto diambil */
-      }
-      #download-photo:hover {
-        background-color: #1565C0;
-        transform: scale(1.05);
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
-      }
-
-      #gallery-container {
-        display: grid;
-        grid-template-columns: repeat(1, minmax(0, 1fr));
-        gap: 16px; /* Jarak antar foto */
-        padding: 16px;
-      }
-      @media (min-width: 640px) {
-        #gallery-container {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        .pixel-font { font-family: 'Press Start 2P', cursive; }
+        
+        /* Glassmorphism Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
-      }
-      @media (min-width: 768px) {
-        #gallery-container {
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-        }
-      }
-      @media (min-width: 1024px) {
-        #gallery-container {
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-        }
-      }
-      .gallery-item {
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-      }
-      .gallery-item:hover {
-        transform: scale(1.03);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-      }
-      .gallery-item img {
-        width: 100%;
-        height: auto;
-        display: block;
-      }
 
-      #contact-form {
-        background-color: #F3E5F5; /* Warna form sesuai tema Figma */
-        border-radius: 16px; /* Rounded corners sesuai Figma */
-        padding: 24px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Efek shadow sesuai Figma */
-        margin: 0 auto; /* Center form */
-        max-width: 600px; /* sesuai lebar figma */
-      }
-      #contact-form input[type="text"],
-      #contact-form input[type="email"],
-      #contact-form textarea {
-        background-color: white;
-        color: #805AD5; /* Warna teks input sesuai tema Figma */
-        padding: 12px;
-        border-radius: 24px; /* Rounded corners sesuai Figma */
-        border: 1px solid #D1C4E9; /* Warna border sesuai tema Figma */
-        outline: none;
-        margin-bottom: 16px;
-        width: 100%; /* Lebar input 100% */
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        font-size: 16px;
-      }
-      #contact-form input[type="text"]:focus,
-      #contact-form input[type="email"]:focus,
-      #contact-form textarea:focus {
-        border-color: #805AD5; /* Warna border fokus sesuai tema Figma */
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15); /* Efek shadow fokus */
-      }
-      #contact-form textarea {
-        resize: vertical;
-        height: 120px; /* Tinggi textarea default */
-      }
+        /* Video Preview Styling */
+        #video-wrapper {
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            background: #000;
+        }
+
+        #video {
+            transform: scaleX(-1); /* Mirror effect supaya natural */
+            transition: filter 0.3s ease;
+        }
+
+        /* Overlay Stiker */
+        #sticker-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Flash Effect */
+        .flash {
+            animation: flashAnim 0.5s ease-out;
+        }
+        @keyframes flashAnim {
+            0% { background: white; opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Button Custom */
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.4);
+        }
     </style>
 </head>
-<body class="bg-gray-100">
-    <header class="bg-purple-600 text-white py-4 flex justify-between items-center shadow-md sticky top-0 z-10 rounded-md">
-        <h1 class="title-game text-2xl ml-4">PixBooth</h1>
-        <nav class="mr-4">
-            <ul class="flex space-x-6">
-                <li><a href="#home" class="hover:text-purple-300 no-underline font-semibold">Beranda</a></li>
-                <li><a href="#photobox" class="hover:text-purple-300 no-underline font-semibold">Photobox</a></li>
-                <li><a href="#galeri" class="hover:text-purple-300 no-underline font-semibold">Galeri</a></li>
-                <li><a href="#tentang" class="hover:text-purple-300 no-underline font-semibold">Tentang</a></li>
-                <li><a href="#kontak" class="hover:text-purple-300 no-underline font-semibold">Kontak</a></li>
-            </ul>
-        </nav>
+<body class="bg-slate-50 text-slate-800">
+
+    <header class="fixed top-0 w-full z-50 glass py-4">
+        <div class="container mx-auto px-6 flex justify-between items-center">
+            <h1 class="pixel-font text-purple-600 text-xl tracking-tighter">PixBooth</h1>
+            <nav class="hidden md:block">
+                <ul class="flex space-x-8 font-semibold text-sm uppercase tracking-wider">
+                    <li><a href="#home" class="hover:text-purple-600 transition">Beranda</a></li>
+                    <li><a href="#photobox" class="hover:text-purple-600 transition">Studio</a></li>
+                    <li><a href="#galeri" class="hover:text-purple-600 transition">Galeri</a></li>
+                    <li><a href="#kontak" class="hover:text-purple-600 transition">Kontak</a></li>
+                </ul>
+            </nav>
+        </div>
     </header>
 
-    <main class="container mx-auto mt-8 p-4">
-        <section id="home" class="mb-16 text-center rounded-md">
-            <h2 class="title-game text-4xl text-purple-700 mb-4">Selamat Datang di PixBooth</h2>
-            <p class="text-lg text-gray-700 mb-6">Photobox online pertama di Indonesia yang memungkinkan kamu berfoto langsung dari browser, tanpa alat tambahan!</p>
-            <a href="#photobox" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-full hover:from-purple-600 hover:to-pink-600 transition duration-300 ease-in-out font-semibold text-xl">Mulai Sekarang</a>
+    <main class="pt-24">
+        <section id="home" class="container mx-auto px-6 py-12 text-center">
+            <span class="bg-purple-100 text-purple-700 px-4 py-1 rounded-full text-xs font-bold uppercase mb-4 inline-block">Bikin Foto Jadi Seru</span>
+            <h2 class="text-5xl md:text-6xl font-extrabold mb-6 leading-tight">Abadikan Momen <br><span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">Tanpa Batas.</span></h2>
+            <p class="text-slate-500 max-w-xl mx-auto mb-8 text-lg">Photobox digital instan dengan filter aesthetic dan stiker lucu langsung dari browser kamu.</p>
+            <a href="#photobox" class="btn-primary text-white px-10 py-4 rounded-2xl font-bold inline-block">Mulai Studio Foto</a>
         </section>
 
-        <section id="photobox" class="mb-16 text-center rounded-md">
-            <h2 class="title-game text-3xl text-purple-700 mb-4">Photobox Langsung dari Browser</h2>
-            <div class="flex justify-center items-center mb-4">
-                <div id="video-container">
-                    <video id="video" autoplay></video>
-                    <canvas id="canvas"></canvas>
-                    <div id="overlay">
-                        <img id="overlay-image" src="" alt="Stiker">
+        <section id="photobox" class="container mx-auto px-6 py-12">
+            <div class="max-w-4xl mx-auto glass p-6 md:p-10 rounded-[40px] shadow-2xl">
+                <div class="grid md:grid-cols-3 gap-8">
+                    
+                    <div class="space-y-6 order-2 md:order-1">
+                        <div>
+                            <label class="block text-sm font-bold mb-3 text-slate-400 uppercase tracking-widest">Pilih Filter</label>
+                            <select id="filter-select" class="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-purple-500 outline-none transition cursor-pointer font-medium">
+                                <option value="none">✨ Normal (Original)</option>
+                                <option value="grayscale(100%)">🌑 Black & White</option>
+                                <option value="sepia(80%)">📜 Vintage Sepia</option>
+                                <option value="invert(100%)">🌈 Inverted</option>
+                                <option value="hue-rotate(90deg)">🧪 Acid Trip</option>
+                                <option value="contrast(150%)">🔥 High Contrast</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold mb-3 text-slate-400 uppercase tracking-widest">Pilih Stiker</label>
+                            <select id="sticker-select" class="w-full p-4 rounded-2xl border-2 border-slate-100 focus:border-purple-500 outline-none transition cursor-pointer font-medium">
+                                <option value="none">❌ Tanpa Stiker</option>
+                                <option value="🕶️">🕶️ Kacamata Keren</option>
+                                <option value="👑">👑 Mahkota Raja</option>
+                                <option value="❤️">❤️ Love Glow</option>
+                                <option value="⭐">⭐ Bintang-Bintang</option>
+                                <option value="🐱">🐱 Kucing Lucu</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2 order-1 md:order-2">
+                        <div id="video-wrapper">
+                            <div id="flash-effect" class="absolute inset-0 z-20 pointer-events-none"></div>
+                            <video id="video" autoplay playsinline class="w-full h-full object-cover"></video>
+                            <div id="sticker-overlay" class="text-7xl flex justify-center items-center"></div>
+                        </div>
+                        
+                        <div class="flex gap-4 mt-6">
+                            <button id="take-photo" class="flex-1 btn-primary text-white py-4 rounded-2xl font-bold text-lg flex items-center justify-center gap-2">
+                                📸 Ambil Foto
+                            </button>
+                            <button id="download-photo" class="hidden bg-slate-800 text-white px-6 rounded-2xl font-bold hover:bg-slate-700 transition">
+                                ⬇️
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div id="controls" class="flex justify-center items-center space-x-4 mb-4">
-                <select id="filter-select" class="filter-button">
-                    <option value="none">Tanpa Filter</option>
-                    <option value="grayscale">Grayscale</option>
-                    <option value="sepia">Sepia</option>
-                    <option value="invert">Invert</option>
-                    <option value="blur">Blur</option>
-                </select>
-                <select id="sticker-select" class="sticker-button">
-                    <option value="none">Tanpa Stiker</option>
-                    <option value="sunglasses">Kacamata</option>
-                    <option value="hat">Topi</option>
-                    <option value="heart">Hati</option>
-                </select>
-                <button id="take-photo" class="take-photo">Ambil Foto</button>
-                <button id="download-photo" class="download-photo">Unduh Foto</button>
+        </section>
+
+        <section id="galeri" class="bg-white py-20">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="pixel-font text-2xl text-purple-600 mb-2">Hasil Jepretan</h2>
+                    <p class="text-slate-400">Koleksi foto terbaikmu di sesi ini</p>
+                </div>
+                <div id="gallery-container" class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    </div>
             </div>
-            <p class="text-gray-600 mt-4">Klik tombol "Ambil Foto" untuk memulai. Pilih filter dan stiker untuk memeriahkan fotomu!</p>
-        </section>
-
-        <section id="galeri" class="mb-16 text-center rounded-md">
-            <h2 class="title-game text-3xl text-purple-700 mb-4">Galeri Foto</h2>
-            <div id="gallery-container">
-            </div>
-        </section>
-
-        <section id="tentang" class="mb-16 rounded-md">
-            <h2 class="title-game text-3xl text-purple-700 mb-4 text-center">Tentang Kami</h2>
-            <p class="text-lg text-gray-700 text-center">PixBooth adalah platform photobox online yang memungkinkan kamu membuat foto-foto seru langsung dari browser. Tanpa perlu menginstall aplikasi tambahan, kamu bisa berkreasi dengan berbagai filter dan stiker menarik. PixBooth hadir untuk memeriahkan acara-acara spesialmu dan memberikan kenangan tak terlupakan.</p>
-        </section>
-
-        <section id="kontak" class="mb-16 rounded-md">
-            <h2 class="title-game text-3xl text-purple-700 mb-4 text-center">Hubungi Kami</h2>
-            <p class="text-lg text-gray-700 text-center mb-4">Email: support@pixbooth.com | Telepon: +62 812 3456 7890</p>
-            <form id="contact-form">
-                <input type="text" id="name" placeholder="Nama Kamu" required>
-                <input type="email" id="email" placeholder="Email Kamu" required>
-                <textarea id="message" placeholder="Pesan Kamu" rows="4" required></textarea>
-                <button type="submit">Kirim Pesan</button>
-            </form>
         </section>
     </main>
 
-    <footer class="bg-gray-800 text-white py-4 text-center rounded-md">
-        <p>© 2024 PixBooth. All rights reserved.</p>
+    <canvas id="canvas" class="hidden"></canvas>
+
+    <footer class="bg-slate-900 text-slate-400 py-12 text-center">
+        <p class="pixel-font text-[10px] mb-4">PixBooth v2.0</p>
+        <p>&copy; 2026 PixBooth Digital Studio. Dibuat dengan ❤️</p>
     </footer>
 
     <script>
-    const videoElement = document.getElementById('video');
-    const canvasElement = document.getElementById('canvas');
-    const context = canvasElement.getContext('2d');
-    const takePhotoButton = document.getElementById('take-photo');
-    const downloadPhotoButton = document.getElementById('download-photo');
-    const filterSelect = document.getElementById('filter-select');
-    const stickerSelect = document.getElementById('sticker-select');
-    const galleryContainer = document.getElementById('gallery-container');
-    const overlayImageElement = document.getElementById('overlay-image');
-    const nameInput = document.getElementById('name');
-    const emailInput = document.getElementById('email');
-    const messageInput = document.getElementById('message');
-    const contactForm = document.getElementById('contact-form');
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const filterSelect = document.getElementById('filter-select');
+        const stickerSelect = document.getElementById('sticker-select');
+        const stickerOverlay = document.getElementById('sticker-overlay');
+        const takeBtn = document.getElementById('take-photo');
+        const downloadBtn = document.getElementById('download-photo');
+        const gallery = document.getElementById('gallery-container');
+        const flashEffect = document.getElementById('flash-effect');
 
+        let lastPhotoData = null;
 
-    let stream;
-    let photos = [];
-    let currentFilter = 'none';
-    let currentSticker = 'none';
-    let isDragging = false;
-    let stickerX = 0;
-    let stickerY = 0;
-    let stickerInstance = null; // Menyimpan instance stiker yang di-drag
-
-    const stickerImages = {
-        'sunglasses': '/assets/sunglasses.png',
-        'hat': '/assets/hat.png',
-        'heart': '/assets/heart.png',
-    };
-
-    async function startCamera() {
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-            videoElement.srcObject = stream;
-            videoElement.onloadedmetadata = () => {
-                videoElement.play();
-                canvasElement.width = videoElement.videoWidth;
-                canvasElement.height = videoElement.videoHeight;
-            };
-        } catch (err) {
-            console.error("Error accessing the camera:", err);
-            alert("Kamera tidak tersedia. Periksa izin kamera Anda.");
-        }
-    }
-
-    function applyFilter() {
-        context.clearRect(0, 0, canvasElement.width, canvasElement.height);
-        context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-        const imageData = context.getImageData(0, 0, canvasElement.width, canvasElement.height);
-        const data = imageData.data;
-
-        if (currentFilter === 'grayscale') {
-            for (let i = 0; i < data.length; i += 4) {
-                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-                data[i] = avg;
-                data[i + 1] = avg;
-                data[i + 2] = avg;
+        // 1. Akses Kamera
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 1280, height: 720 }, 
+                    audio: false 
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                alert("Mohon izinkan akses kamera untuk menggunakan PixBooth!");
             }
-        } else if (currentFilter === 'sepia') {
-            for (let i = 0; i < data.length; i += 4) {
-                const r = data[i];
-                const g = data[i + 1];
-                const b = data[i + 2];
-                data[i] = Math.min(255, (r * 0.393) + (g * 0.769) + (b * 0.189));
-                data[i + 1] = Math.min(255, (r * 0.349) + (g * 0.686) + (b * 0.168));
-                data[i + 2] = Math.min(255, (r * 0.272) + (g * 0.534) + (b * 0.131));
+        }
+
+        // 2. Update Preview Filter
+        filterSelect.addEventListener('change', (e) => {
+            video.style.filter = e.target.value;
+        });
+
+        // 3. Update Preview Stiker (Menggunakan Emoji untuk kemudahan akses)
+        stickerSelect.addEventListener('change', (e) => {
+            if(e.target.value === 'none') {
+                stickerOverlay.innerText = '';
+            } else {
+                stickerOverlay.innerText = e.target.value;
             }
-        } else if (currentFilter === 'invert') {
-            for (let i = 0; i < data.length; i += 4) {
-                data[i] = 255 - data[i];
-                data[i + 1] = 255 - data[i + 1];
-                data[i + 2] = 255 - data[i + 2];
+        });
+
+        // 4. Logika Ambil Foto (Menggabungkan semua elemen)
+        takeBtn.addEventListener('click', () => {
+            // Efek Flash
+            flashEffect.classList.add('flash');
+            setTimeout(() => flashEffect.classList.remove('flash'), 500);
+
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // Gambar Video dengan Filter
+            ctx.filter = filterSelect.value === 'none' ? 'none' : filterSelect.value;
+            
+            // Mirroring (supaya hasil sama dengan preview)
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            ctx.setTransform(1, 0, 0, 1, 0, 0); // Reset transform
+
+            // Gambar Stiker jika ada
+            if (stickerSelect.value !== 'none') {
+                ctx.font = "150px serif";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(stickerSelect.value, canvas.width/2, canvas.height/2);
             }
-        } else if (currentFilter === 'blur') {
-            context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-            context.filter = 'blur(5px)';
+
+            const dataURL = canvas.toDataURL('image/png');
+            lastPhotoData = dataURL;
+            
+            saveToGallery(dataURL);
+            downloadBtn.classList.remove('hidden');
+        });
+
+        function saveToGallery(url) {
+            const div = document.createElement('div');
+            div.className = "group relative overflow-hidden rounded-3xl shadow-lg transition hover:-translate-y-2";
+            div.innerHTML = `
+                <img src="${url}" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
+                    <button onclick="downloadSpecific('${url}')" class="bg-white text-black px-4 py-2 rounded-full text-xs font-bold">Unduh</button>
+                </div>
+            `;
+            gallery.prepend(div);
         }
 
-        context.putImageData(imageData, 0, 0);
-    }
-
-function applySticker() {
-    overlayImageElement.style.display = 'none';
-    if (currentSticker !== 'none') {
-        overlayImageElement.src = stickerImages[currentSticker];
-        overlayImageElement.style.display = 'block';
-
-        // Jika ini stiker baru, reset posisi dan buat instance baru
-        if (!stickerInstance) {
-            stickerX = (canvasElement.width / 2) - 50; // Posisi tengah horizontal
-            stickerY = (canvasElement.height / 2) - 50; // Posisi tengah vertikal
+        function downloadSpecific(url) {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `PixBooth-${Date.now()}.png`;
+            link.click();
         }
 
-        overlayImageElement.style.left = `${stickerX}px`;
-        overlayImageElement.style.top = `${stickerY}px`;
-    }
-}
+        downloadBtn.addEventListener('click', () => {
+            if(lastPhotoData) downloadSpecific(lastPhotoData);
+        });
 
-
-
-    function takePhoto() {
-        applyFilter();
-        const dataURL = canvasElement.toDataURL('image/png');
-        photos.push(dataURL);
-        displayPhoto(dataURL);
-        downloadPhotoButton.style.display = 'inline-block';
-    }
-
-    function displayPhoto(dataURL) {
-        const img = document.createElement('img');
-        img.src = dataURL;
-        img.classList.add('gallery-item');
-        galleryContainer.insertBefore(img, galleryContainer.firstChild);
-    }
-
-    function downloadPhoto() {
-        if (photos.length > 0) {
-            const a = document.createElement('a');
-            a.href = photos[photos.length - 1];
-            a.download = 'foto_pixbooth.png';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        } else {
-            alert("Ambil foto terlebih dahulu sebelum mengunduh.");
-        }
-    }
-
-    filterSelect.addEventListener('change', () => {
-        currentFilter = filterSelect.value;
-        applyFilter();
-    });
-
-  stickerSelect.addEventListener('change', () => {
-    currentSticker = stickerSelect.value;
-    applySticker();
-});
-
-
-
-    takePhotoButton.addEventListener('click', () => {
-        takePhoto();
-    });
-
-    downloadPhotoButton.addEventListener('click', () => {
-        downloadPhoto();
-    });
-
-    // Mulai kamera saat halaman dimuat
-    startCamera();
-
-  // Fungsi untuk mengirim data formulir kontak
-contactForm.addEventListener('submit', (event) => {
-    event.preventDefault(); // Mencegah pengiriman formulir standar
-
-    // Validasi input
-    if (!nameInput.value.trim()) {
-        alert('Nama harus diisi.');
-        return;
-    }
-    if (!emailInput.value.trim()) {
-        alert('Email harus diisi.');
-        return;
-    }
-    if (!messageInput.value.trim()) {
-        alert('Pesan harus diisi.');
-        return;
-    }
-
-    // Buat objek data yang akan dikirim
-    const formData = {
-        name: nameInput.value,
-        email: emailInput.value,
-        message: messageInput.value,
-    };
-
-    // Kirim data ke server (gunakan fetch atau library AJAX lainnya)
-    // Contoh menggunakan fetch:
-    fetch('/kirim-pesan.php', { // Ganti '/kirim-pesan.php' dengan URL yang sesuai
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            alert('Pesan kamu sudah terkirim!');
-            nameInput.value = '';
-            emailInput.value = '';
-            messageInput.value = '';
-        } else {
-            alert('Terjadi kesalahan. Silakan coba lagi nanti.');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Terjadi kesalahan. Silakan coba lagi nanti.');
-    });
-});
+        window.onload = initCamera;
     </script>
 </body>
 </html>
